@@ -1,0 +1,628 @@
+def rencana_liburan_korea_maksimal(budget_total=50000000, durasi_hari=7):
+    # Hari dalam format numeric (0 = hari pertama, 1 = hari kedua, dst)
+    hari_tersedia = list(range(durasi_hari))
+    
+    # Definisi kategori pengeluaran dan opsi-opsinya
+    pesawat = [
+        {"nama": "Tiket Pesawat Pergi", "harga": 9500000, "hari": 0, "durasi": 0.5},
+        {"nama": "Tiket Pesawat Pulang", "harga": 9500000, "hari": durasi_hari-1, "durasi": 0.5}
+    ]
+    
+    komunikasi = [
+        {"nama": "Paket Data Standar", "harga": 250000, "hari": 0, "durasi": 0},
+        {"nama": "Paket Data Medium", "harga": 500000, "hari": 0, "durasi": 0},
+        {"nama": "Paket Data Premium", "harga": 800000, "hari": 0, "durasi": 0}
+    ]
+    
+    hotel = [
+        {"nama": "Hotel Shilla Stay (Standard)", "harga": 7000000, "hari": 0, "durasi": durasi_hari-1},
+        {"nama": "Hotel Shilla Stay (Deluxe)", "harga": 10000000, "hari": 0, "durasi": durasi_hari-1},
+        {"nama": "Hotel Shilla Stay (Premium)", "harga": 14000000, "hari": 0, "durasi": durasi_hari-1}
+    ]
+    
+    # Opsi tempat makan (dengan hari dan durasi)
+    tempat_makan = [
+        {"nama": "Tosokchon Samgyetan", "harga": 300000, "hari": 1, "durasi": 0.1},
+        {"nama": "Samyukga", "harga": 400000, "hari": 2, "durasi": 0.1},
+        {"nama": "Osege Hyang", "harga": 350000, "hari": 3, "durasi": 0.1},
+        {"nama": "Mouse Rabbit Coffee", "harga": 150000, "hari": 4, "durasi": 0.05},
+        {"nama": "Cloudy Sky", "harga": 200000, "hari": 5, "durasi": 0.05}
+    ]
+    
+    # Opsi transportasi (dengan hari dan durasi)
+    transportasi = [
+        {"nama": "Taxi Bandara ke Hotel", "harga": 150000, "hari": 0, "durasi": 0.1},
+        {"nama": "Taxi Hotel ke Bandara", "harga": 150000, "hari": durasi_hari-1, "durasi": 0.1},
+        {"nama": "Taxi Harian", "harga": 200000, "hari": 1, "durasi": 0.2},
+        {"nama": "Taxi Harian", "harga": 200000, "hari": 2, "durasi": 0.2},
+        {"nama": "Taxi Harian", "harga": 200000, "hari": 3, "durasi": 0.2},
+        {"nama": "Taxi Harian", "harga": 200000, "hari": 4, "durasi": 0.2},
+        {"nama": "Taxi Harian", "harga": 200000, "hari": 5, "durasi": 0.2}
+    ]
+    
+    # Opsi tempat wisata (dengan hari dan durasi)
+    tempat_wisata = [
+        {"nama": "Lotte World", "harga": 800000, "hari": 1, "durasi": 0.5},
+        {"nama": "Myeongdong Street", "harga": 0, "hari": 2, "durasi": 0.3},
+        {"nama": "Pulau Nami", "harga": 600000, "hari": 3, "durasi": 0.6},
+        {"nama": "N Seoul Tower", "harga": 700000, "hari": 4, "durasi": 0.4}
+    ]
+    
+    # Opsi tempat belanja (dengan hari dan durasi)
+    tempat_belanja = [
+        {"nama": "Myeongdong Street", "harga": 1000000, "hari": 2, "durasi": 0.3},
+        {"nama": "Olive Young", "harga": 500000, "hari": 3, "durasi": 0.2},
+        {"nama": "Gotto Mall", "harga": 800000, "hari": 5, "durasi": 0.4},
+        {"nama": "Music Korea", "harga": 700000, "hari": 4, "durasi": 0.3}
+    ]
+    
+    # Tambahan biaya tak terduga
+    biaya_tak_terduga = [
+        {"nama": "Delay Pesawat (Hotel Transit)", "harga": 1500000, "hari": 0, "durasi": 0},
+        {"nama": "Upgrade Hotel karena Penuh", "harga": 2000000, "hari": 0, "durasi": 0},
+        {"nama": "Tambahan Transportasi ke Hotel Pengganti", "harga": 300000, "hari": 0, "durasi": 0.1},
+        {"nama": "Biaya Internet Tambahan", "harga": 200000, "hari": 2, "durasi": 0},
+        {"nama": "Parkir di Berbagai Lokasi", "harga": 100000, "hari": 3, "durasi": 0},
+        {"nama": "Obat dan Keperluan Darurat", "harga": 350000, "hari": 1, "durasi": 0.05},
+        {"nama": "Biaya Tambahan Perubahan Jadwal", "harga": 750000, "hari": 2, "durasi": 0},
+        {"nama": "Cuaca Buruk (Aktivitas Indoor Tambahan)", "harga": 550000, "hari": 3, "durasi": 0.3},
+        {"nama": "Pembelian Perlengkapan Musim Dingin", "harga": 1200000, "hari": 1, "durasi": 0.2},
+        {"nama": "Biaya Guide Lokal", "harga": 800000, "hari": 2, "durasi": 0},
+        {"nama": "Tambahan Kuliner Eksklusif", "harga": 900000, "hari": 4, "durasi": 0.2},
+        {"nama": "Sewa Kendaraan Pribadi", "harga": 1300000, "hari": 3, "durasi": 0},
+        {"nama": "Tiket Acara/Pertunjukan Spesial", "harga": 500000, "hari": 5, "durasi": 0.25},
+        {"nama": "Spa/Salon Treatment", "harga": 850000, "hari": 4, "durasi": 0.3},
+        {"nama": "Upgrade Paket Wisata", "harga": 1000000, "hari": 2, "durasi": 0}
+    ]
+    
+    # Inisialisasi jadwal kosong untuk setiap hari
+    def init_jadwal(durasi):
+        return [{
+            "pagi": [],
+            "siang": [],
+            "sore": [],
+            "malam": []
+        } for _ in range(durasi)]
+    
+    # Inisialisasi hasil terbaik
+    rencana_terbaik = {
+        "pesawat": [],
+        "komunikasi": None,
+        "hotel": None,
+        "makan": [],
+        "transportasi": [],
+        "wisata": [],
+        "belanja": [],
+        "tak_terduga": [],
+        "total_biaya": 0,
+        "sisa_budget": budget_total,
+        "jadwal": init_jadwal(durasi_hari)
+    }
+    
+    # Fungsi untuk mengecek apakah aktivitas bisa masuk ke jadwal
+    def cek_jadwal_tersedia(jadwal, hari, durasi):
+        # Jika durasi <= 0.1, bisa dijadwalkan bersamaan dengan aktivitas lain
+        if durasi <= 0.1:
+            return True
+            
+        # Untuk durasi yang lebih lama, cek ketersediaan slot waktu
+        # Asumsikan: < 0.25 = 1 slot, 0.25-0.4 = 2 slot, > 0.4 = 3 slot atau lebih
+        slots_needed = 1
+        if durasi > 0.25 and durasi <= 0.4:
+            slots_needed = 2
+        elif durasi > 0.4:
+            slots_needed = 3
+            
+        # Cek ketersediaan slot
+        slot_tersedia = 0
+        for waktu in ["pagi", "siang", "sore", "malam"]:
+            # Aktivitas dengan durasi < 0.1 tidak menempati slot penuh
+            slot_terisi = any(act.get("durasi", 0) > 0.1 for act in jadwal[hari][waktu])
+            if not slot_terisi:
+                slot_tersedia += 1
+                
+        return slot_tersedia >= slots_needed
+    
+    # Fungsi untuk menempatkan aktivitas ke jadwal
+    def tempatkan_ke_jadwal(jadwal, aktivitas, waktu_custom=None):
+        hari = aktivitas["hari"]
+        durasi = aktivitas.get("durasi", 0)
+        
+        if waktu_custom:
+            jadwal[hari][waktu_custom].append(aktivitas)
+            return jadwal
+            
+        # Aturan penempatan berdasarkan durasi
+        if durasi <= 0.1:
+            # Aktivitas singkat bisa ditempatkan di mana saja
+            for waktu in ["pagi", "siang", "sore", "malam"]:
+                if len(jadwal[hari][waktu]) < 3:  # Maksimal 3 aktivitas singkat per slot
+                    jadwal[hari][waktu].append(aktivitas)
+                    return jadwal
+                    
+        elif durasi > 0.4:
+            # Aktivitas panjang mengambil beberapa slot
+            if not jadwal[hari]["pagi"] and not jadwal[hari]["siang"]:
+                jadwal[hari]["pagi"].append(aktivitas)
+                jadwal[hari]["siang"].append({"ref": aktivitas["nama"]})
+                return jadwal
+            elif not jadwal[hari]["siang"] and not jadwal[hari]["sore"]:
+                jadwal[hari]["siang"].append(aktivitas)
+                jadwal[hari]["sore"].append({"ref": aktivitas["nama"]})
+                return jadwal
+            elif not jadwal[hari]["sore"] and not jadwal[hari]["malam"]:
+                jadwal[hari]["sore"].append(aktivitas)
+                jadwal[hari]["malam"].append({"ref": aktivitas["nama"]})
+                return jadwal
+                
+        elif durasi > 0.25:
+            # Aktivitas medium mengambil 1 slot penuh
+            for waktu in ["pagi", "siang", "sore", "malam"]:
+                if not any(act.get("durasi", 0) > 0.1 for act in jadwal[hari][waktu]):
+                    jadwal[hari][waktu].append(aktivitas)
+                    return jadwal
+                    
+        else:
+            # Aktivitas pendek mengambil 1 slot
+            for waktu in ["pagi", "siang", "sore", "malam"]:
+                if not jadwal[hari][waktu]:
+                    jadwal[hari][waktu].append(aktivitas)
+                    return jadwal
+                    
+        # Jika tidak bisa ditempatkan dengan aturan di atas, coba tempatkan di mana saja
+        for waktu in ["pagi", "siang", "sore", "malam"]:
+            if not any(act.get("durasi", 0) > 0.25 for act in jadwal[hari][waktu]):
+                jadwal[hari][waktu].append(aktivitas)
+                return jadwal
+                
+        # Asumsikan selalu bisa ditempatkan di suatu tempat
+        jadwal[hari]["malam"].append(aktivitas)
+        return jadwal
+    
+    # Fungsi backtracking untuk menghasilkan rencana liburan
+    def backtrack(rencana_saat_ini, kategori_saat_ini=0):
+        nonlocal rencana_terbaik
+        
+        # Kategori: 0=pesawat, 1=komunikasi, 2=hotel, 3=makan, 4=transportasi, 5=wisata, 6=belanja, 7=tak_terduga
+        if kategori_saat_ini > 7:
+            # Rencana lengkap, periksa apakah ini lebih baik (sisa budget minimal)
+            if rencana_saat_ini["sisa_budget"] < rencana_terbaik["sisa_budget"] and rencana_saat_ini["sisa_budget"] >= 0:
+                rencana_terbaik = {
+                    "pesawat": rencana_saat_ini["pesawat"].copy(),
+                    "komunikasi": rencana_saat_ini["komunikasi"],
+                    "hotel": rencana_saat_ini["hotel"],
+                    "makan": rencana_saat_ini["makan"].copy(),
+                    "transportasi": rencana_saat_ini["transportasi"].copy(),
+                    "wisata": rencana_saat_ini["wisata"].copy(),
+                    "belanja": rencana_saat_ini["belanja"].copy(),
+                    "tak_terduga": rencana_saat_ini["tak_terduga"].copy(),
+                    "total_biaya": rencana_saat_ini["total_biaya"],
+                    "sisa_budget": rencana_saat_ini["sisa_budget"],
+                    "jadwal": [
+                        {
+                            "pagi": [item for item in hari["pagi"]],
+                            "siang": [item for item in hari["siang"]],
+                            "sore": [item for item in hari["sore"]],
+                            "malam": [item for item in hari["malam"]]
+                        } for hari in rencana_saat_ini["jadwal"]
+                    ]
+                }
+            return
+        
+        # Kategori Pesawat
+        if kategori_saat_ini == 0:
+            # Pesawat pergi dan pulang adalah wajib
+            total_biaya_pesawat = 0
+            rencana_baru = {
+                "pesawat": [],
+                "komunikasi": rencana_saat_ini["komunikasi"],
+                "hotel": rencana_saat_ini["hotel"],
+                "makan": rencana_saat_ini["makan"].copy(),
+                "transportasi": rencana_saat_ini["transportasi"].copy(),
+                "wisata": rencana_saat_ini["wisata"].copy(),
+                "belanja": rencana_saat_ini["belanja"].copy(),
+                "tak_terduga": rencana_saat_ini["tak_terduga"].copy(),
+                "total_biaya": rencana_saat_ini["total_biaya"],
+                "sisa_budget": rencana_saat_ini["sisa_budget"],
+                "jadwal": [
+                    {
+                        "pagi": [item for item in hari["pagi"]],
+                        "siang": [item for item in hari["siang"]],
+                        "sore": [item for item in hari["sore"]],
+                        "malam": [item for item in hari["malam"]]
+                    } for hari in rencana_saat_ini["jadwal"]
+                ]
+            }
+            
+            for p in pesawat:
+                if p["harga"] <= rencana_baru["sisa_budget"]:
+                    rencana_baru["pesawat"].append(p)
+                    rencana_baru["total_biaya"] += p["harga"]
+                    rencana_baru["sisa_budget"] -= p["harga"]
+                    total_biaya_pesawat += p["harga"]
+                    
+                    # Update jadwal
+                    if p["hari"] == 0:  # Pesawat pergi
+                        rencana_baru["jadwal"] = tempatkan_ke_jadwal(rencana_baru["jadwal"], p, "pagi")
+                    else:  # Pesawat pulang
+                        rencana_baru["jadwal"] = tempatkan_ke_jadwal(rencana_baru["jadwal"], p, "sore")
+                else:
+                    # Jika tidak cukup untuk satu pesawat, batalkan rencana
+                    return
+            
+            # Lanjut ke kategori berikutnya jika total biaya pesawat <= 19 juta
+            if total_biaya_pesawat <= 19000000 and len(rencana_baru["pesawat"]) == 2:
+                backtrack(rencana_baru, kategori_saat_ini + 1)
+        
+        # Kategori Komunikasi
+        elif kategori_saat_ini == 1:
+            for k in komunikasi:
+                if k["harga"] <= rencana_saat_ini["sisa_budget"]:
+                    rencana_baru = {
+                        "pesawat": rencana_saat_ini["pesawat"].copy(),
+                        "komunikasi": k,
+                        "hotel": rencana_saat_ini["hotel"],
+                        "makan": rencana_saat_ini["makan"].copy(),
+                        "transportasi": rencana_saat_ini["transportasi"].copy(),
+                        "wisata": rencana_saat_ini["wisata"].copy(),
+                        "belanja": rencana_saat_ini["belanja"].copy(),
+                        "tak_terduga": rencana_saat_ini["tak_terduga"].copy(),
+                        "total_biaya": rencana_saat_ini["total_biaya"] + k["harga"],
+                        "sisa_budget": rencana_saat_ini["sisa_budget"] - k["harga"],
+                        "jadwal": [
+                            {
+                                "pagi": [item for item in hari["pagi"]],
+                                "siang": [item for item in hari["siang"]],
+                                "sore": [item for item in hari["sore"]],
+                                "malam": [item for item in hari["malam"]]
+                            } for hari in rencana_saat_ini["jadwal"]
+                        ]
+                    }
+                    backtrack(rencana_baru, kategori_saat_ini + 1)
+        
+        # Kategori Hotel
+        elif kategori_saat_ini == 2:
+            for h in hotel:
+                if h["harga"] <= rencana_saat_ini["sisa_budget"]:
+                    rencana_baru = {
+                        "pesawat": rencana_saat_ini["pesawat"].copy(),
+                        "komunikasi": rencana_saat_ini["komunikasi"],
+                        "hotel": h,
+                        "makan": rencana_saat_ini["makan"].copy(),
+                        "transportasi": rencana_saat_ini["transportasi"].copy(),
+                        "wisata": rencana_saat_ini["wisata"].copy(),
+                        "belanja": rencana_saat_ini["belanja"].copy(),
+                        "tak_terduga": rencana_saat_ini["tak_terduga"].copy(),
+                        "total_biaya": rencana_saat_ini["total_biaya"] + h["harga"],
+                        "sisa_budget": rencana_saat_ini["sisa_budget"] - h["harga"],
+                        "jadwal": [
+                            {
+                                "pagi": [item for item in hari["pagi"]],
+                                "siang": [item for item in hari["siang"]],
+                                "sore": [item for item in hari["sore"]],
+                                "malam": [item for item in hari["malam"]]
+                            } for hari in rencana_saat_ini["jadwal"]
+                        ]
+                    }
+                    backtrack(rencana_baru, kategori_saat_ini + 1)
+        
+        # Kategori Makan
+        elif kategori_saat_ini == 3:
+            # Coba semua kombinasi tempat makan dalam batas anggaran 2 juta
+            makan_backtrack(rencana_saat_ini, 0, 0, 2000000)
+        
+        # Kategori Transportasi
+        elif kategori_saat_ini == 4:
+            transportasi_backtrack(rencana_saat_ini, 0, 0, 500000)
+        
+        # Kategori Wisata
+        elif kategori_saat_ini == 5:
+            # Coba semua kombinasi tempat wisata dalam batas anggaran 2.1 juta
+            wisata_backtrack(rencana_saat_ini, 0, 0, 2100000)
+        
+        # Kategori Belanja
+        elif kategori_saat_ini == 6:
+            # Coba semua kombinasi tempat belanja dalam batas anggaran 3 juta
+            belanja_backtrack(rencana_saat_ini, 0, 0, 3000000)
+            
+        # Kategori Tak Terduga
+        elif kategori_saat_ini == 7:
+            # Coba semua kombinasi biaya tak terduga
+            tak_terduga_backtrack(rencana_saat_ini, 0)
+    
+    # Fungsi backtracking untuk tempat makan
+    def makan_backtrack(rencana, index, total_makan, batas_makan):
+        # Jika sudah melampaui batas anggaran makan atau sudah mencoba semua tempat makan
+        if total_makan > batas_makan or index >= len(tempat_makan):
+            # Lanjutkan ke kategori berikutnya jika sudah memilih setidaknya satu tempat makan
+            if rencana["makan"] and total_makan <= batas_makan:
+                backtrack(rencana, 4)  # Lanjut ke transportasi
+            return
+        
+        # Pilihan 1: Pilih tempat makan saat ini
+        tempat = tempat_makan[index]
+        if tempat["harga"] + total_makan <= batas_makan and tempat["harga"] <= rencana["sisa_budget"]:
+            # Periksa apakah jadwal memungkinkan
+            hari_ke = tempat["hari"]
+            if hari_ke < durasi_hari and cek_jadwal_tersedia(rencana["jadwal"], hari_ke, tempat["durasi"]):
+                rencana_baru = {
+                    "pesawat": rencana["pesawat"].copy(),
+                    "komunikasi": rencana["komunikasi"],
+                    "hotel": rencana["hotel"],
+                    "makan": rencana["makan"].copy(),
+                    "transportasi": rencana["transportasi"].copy(),
+                    "wisata": rencana["wisata"].copy(),
+                    "belanja": rencana["belanja"].copy(),
+                    "tak_terduga": rencana["tak_terduga"].copy(),
+                    "total_biaya": rencana["total_biaya"] + tempat["harga"],
+                    "sisa_budget": rencana["sisa_budget"] - tempat["harga"],
+                    "jadwal": [
+                        {
+                            "pagi": [item for item in hari["pagi"]],
+                            "siang": [item for item in hari["siang"]],
+                            "sore": [item for item in hari["sore"]],
+                            "malam": [item for item in hari["malam"]]
+                        } for hari in rencana["jadwal"]
+                    ]
+                }
+                rencana_baru["makan"].append(tempat)
+                
+                # Update jadwal
+                rencana_baru["jadwal"] = tempatkan_ke_jadwal(rencana_baru["jadwal"], tempat)
+                
+                makan_backtrack(rencana_baru, index + 1, total_makan + tempat["harga"], batas_makan)
+        
+        # Pilihan 2: Tidak pilih tempat makan saat ini
+        makan_backtrack(rencana, index + 1, total_makan, batas_makan)
+    
+    # Fungsi backtracking untuk transportasi
+    def transportasi_backtrack(rencana, index, total_transportasi, batas_transportasi):
+        # Jika sudah melampaui batas anggaran transportasi atau sudah mencoba semua transportasi
+        if total_transportasi > batas_transportasi or index >= len(transportasi):
+            # Lanjutkan ke kategori berikutnya jika sudah memilih setidaknya taxi bandara PP
+            if rencana["transportasi"] and total_transportasi <= batas_transportasi:
+                backtrack(rencana, 5)  # Lanjut ke wisata
+            return
+        
+        # Pilihan 1: Pilih transportasi saat ini
+        trans = transportasi[index]
+        if trans["harga"] + total_transportasi <= batas_transportasi and trans["harga"] <= rencana["sisa_budget"]:
+            # Periksa apakah jadwal memungkinkan
+            hari_ke = trans["hari"]
+            if hari_ke < durasi_hari and cek_jadwal_tersedia(rencana["jadwal"], hari_ke, trans["durasi"]):
+                rencana_baru = {
+                    "pesawat": rencana["pesawat"].copy(),
+                    "komunikasi": rencana["komunikasi"],
+                    "hotel": rencana["hotel"],
+                    "makan": rencana["makan"].copy(),
+                    "transportasi": rencana["transportasi"].copy(),
+                    "wisata": rencana["wisata"].copy(),
+                    "belanja": rencana["belanja"].copy(),
+                    "tak_terduga": rencana["tak_terduga"].copy(),
+                    "total_biaya": rencana["total_biaya"] + trans["harga"],
+                    "sisa_budget": rencana["sisa_budget"] - trans["harga"],
+                    "jadwal": [
+                        {
+                            "pagi": [item for item in hari["pagi"]],
+                            "siang": [item for item in hari["siang"]],
+                            "sore": [item for item in hari["sore"]],
+                            "malam": [item for item in hari["malam"]]
+                        } for hari in rencana["jadwal"]
+                    ]
+                }
+                rencana_baru["transportasi"].append(trans)
+                
+                # Update jadwal
+                rencana_baru["jadwal"] = tempatkan_ke_jadwal(rencana_baru["jadwal"], trans)
+                
+                transportasi_backtrack(rencana_baru, index + 1, total_transportasi + trans["harga"], batas_transportasi)
+        
+        # Pilihan 2: Tidak pilih transportasi saat ini
+        transportasi_backtrack(rencana, index + 1, total_transportasi, batas_transportasi)
+    
+    # Fungsi backtracking untuk tempat wisata
+    def wisata_backtrack(rencana, index, total_wisata, batas_wisata):
+        # Jika sudah melampaui batas anggaran wisata atau sudah mencoba semua tempat wisata
+        if total_wisata > batas_wisata or index >= len(tempat_wisata):
+            # Lanjutkan ke kategori berikutnya jika sudah memilih setidaknya satu tempat wisata
+            if rencana["wisata"] and total_wisata <= batas_wisata:
+                backtrack(rencana, 6)  # Lanjut ke belanja
+            return
+        
+        # Pilihan 1: Pilih tempat wisata saat ini
+        tempat = tempat_wisata[index]
+        if tempat["harga"] + total_wisata <= batas_wisata and tempat["harga"] <= rencana["sisa_budget"]:
+            # Periksa apakah jadwal memungkinkan
+            hari_ke = tempat["hari"]
+            if hari_ke < durasi_hari and cek_jadwal_tersedia(rencana["jadwal"], hari_ke, tempat["durasi"]):
+                rencana_baru = {
+                    "pesawat": rencana["pesawat"].copy(),
+                    "komunikasi": rencana["komunikasi"],
+                    "hotel": rencana["hotel"],
+                    "makan": rencana["makan"].copy(),
+                    "transportasi": rencana["transportasi"].copy(),
+                    "wisata": rencana["wisata"].copy(),
+                    "belanja": rencana["belanja"].copy(),
+                    "tak_terduga": rencana["tak_terduga"].copy(),
+                    "total_biaya": rencana["total_biaya"] + tempat["harga"],
+                    "sisa_budget": rencana["sisa_budget"] - tempat["harga"],
+                    "jadwal": [
+                        {
+                            "pagi": [item for item in hari["pagi"]],
+                            "siang": [item for item in hari["siang"]],
+                            "sore": [item for item in hari["sore"]],
+                            "malam": [item for item in hari["malam"]]
+                        } for hari in rencana["jadwal"]
+                    ]
+                }
+                rencana_baru["wisata"].append(tempat)
+                
+                # Update jadwal
+                rencana_baru["jadwal"] = tempatkan_ke_jadwal(rencana_baru["jadwal"], tempat)
+                
+                wisata_backtrack(rencana_baru, index + 1, total_wisata + tempat["harga"], batas_wisata)
+        
+        # Pilihan 2: Tidak pilih tempat wisata saat ini
+        wisata_backtrack(rencana, index + 1, total_wisata, batas_wisata)
+    # Fungsi backtracking untuk tempat belanja
+    def belanja_backtrack(rencana, index, total_belanja, batas_belanja):
+        # Jika sudah melampaui batas anggaran belanja atau sudah mencoba semua tempat belanja
+        if total_belanja > batas_belanja or index >= len(tempat_belanja):
+            # Lanjutkan ke kategori berikutnya jika sudah memilih setidaknya satu tempat belanja
+            if rencana["belanja"] and total_belanja <= batas_belanja:
+                backtrack(rencana, 7)  # Lanjut ke tak terduga
+            return
+        
+        # Pilihan 1: Pilih tempat belanja saat ini
+        tempat = tempat_belanja[index]
+        if tempat["harga"] + total_belanja <= batas_belanja and tempat["harga"] <= rencana["sisa_budget"]:
+            # Periksa apakah jadwal memungkinkan
+            hari_ke = tempat["hari"]
+            if hari_ke < durasi_hari and cek_jadwal_tersedia(rencana["jadwal"], hari_ke, tempat["durasi"]):
+                rencana_baru = {
+                    "pesawat": rencana["pesawat"].copy(),
+                    "komunikasi": rencana["komunikasi"],
+                    "hotel": rencana["hotel"],
+                    "makan": rencana["makan"].copy(),
+                    "transportasi": rencana["transportasi"].copy(),
+                    "wisata": rencana["wisata"].copy(),
+                    "belanja": rencana["belanja"].copy(),
+                    "tak_terduga": rencana["tak_terduga"].copy(),
+                    "total_biaya": rencana["total_biaya"] + tempat["harga"],
+                    "sisa_budget": rencana["sisa_budget"] - tempat["harga"],
+                    "jadwal": [
+                        {
+                            "pagi": [item for item in hari["pagi"]],
+                            "siang": [item for item in hari["siang"]],
+                            "sore": [item for item in hari["sore"]],
+                            "malam": [item for item in hari["malam"]]
+                        } for hari in rencana["jadwal"]
+                    ]
+                }
+                rencana_baru["belanja"].append(tempat)
+                
+                # Update jadwal
+                rencana_baru["jadwal"] = tempatkan_ke_jadwal(rencana_baru["jadwal"], tempat)
+                
+                belanja_backtrack(rencana_baru, index + 1, total_belanja + tempat["harga"], batas_belanja)
+        
+        # Pilihan 2: Tidak pilih tempat belanja saat ini
+        belanja_backtrack(rencana, index + 1, total_belanja, batas_belanja)
+    
+    # Fungsi backtracking untuk biaya tak terduga
+    def tak_terduga_backtrack(rencana, index, max_item=2):
+        # Jika sudah mencoba semua biaya tak terduga
+        if index >= len(biaya_tak_terduga):
+            # Rencana lengkap, cek jika ini lebih baik
+            backtrack(rencana, 8)  # Lanjut ke evaluasi rencana
+            return
+        
+        # Pilihan 1: Pilih biaya tak terduga saat ini (maksimal 2 item)
+        if len(rencana["tak_terduga"]) < max_item:
+            biaya = biaya_tak_terduga[index]
+            if biaya["harga"] <= rencana["sisa_budget"]:
+                # Periksa apakah jadwal memungkinkan jika memiliki durasi
+                hari_ke = biaya["hari"]
+                if hari_ke < durasi_hari and cek_jadwal_tersedia(rencana["jadwal"], hari_ke, biaya["durasi"]):
+                    rencana_baru = {
+                        "pesawat": rencana["pesawat"].copy(),
+                        "komunikasi": rencana["komunikasi"],
+                        "hotel": rencana["hotel"],
+                        "makan": rencana["makan"].copy(),
+                        "transportasi": rencana["transportasi"].copy(),
+                        "wisata": rencana["wisata"].copy(),
+                        "belanja": rencana["belanja"].copy(),
+                        "tak_terduga": rencana["tak_terduga"].copy(),
+                        "total_biaya": rencana["total_biaya"] + biaya["harga"],
+                        "sisa_budget": rencana["sisa_budget"] - biaya["harga"],
+                        "jadwal": [
+                            {
+                                "pagi": [item for item in hari["pagi"]],
+                                "siang": [item for item in hari["siang"]],
+                                "sore": [item for item in hari["sore"]],
+                                "malam": [item for item in hari["malam"]]
+                            } for hari in rencana["jadwal"]
+                        ]
+                    }
+                    rencana_baru["tak_terduga"].append(biaya)
+                    
+                    # Update jadwal jika memiliki durasi
+                    if biaya["durasi"] > 0:
+                        rencana_baru["jadwal"] = tempatkan_ke_jadwal(rencana_baru["jadwal"], biaya)
+                    
+                    tak_terduga_backtrack(rencana_baru, index + 1, max_item)
+        
+        # Pilihan 2: Tidak pilih biaya tak terduga saat ini
+        tak_terduga_backtrack(rencana, index + 1, max_item)
+    
+    # Mulai proses backtracking dari keadaan awal
+    backtrack(rencana_terbaik)
+    
+    # Format hasil untuk output yang mudah dibaca
+    def format_output(rencana):
+        total_pengeluaran = rencana["total_biaya"]
+        
+        # Format per kategori
+        hasil = {
+            "rencana_liburan": {
+                "total_budget": budget_total,
+                "total_pengeluaran": total_pengeluaran,
+                "sisa_budget": rencana["sisa_budget"],
+                "persentase_terpakai": (total_pengeluaran / budget_total) * 100
+            },
+            "kategori_pengeluaran": {
+                "pesawat": {
+                    "items": rencana["pesawat"],
+                    "total": sum(item["harga"] for item in rencana["pesawat"])
+                },
+                "komunikasi": {
+                    "item": rencana["komunikasi"],
+                    "total": rencana["komunikasi"]["harga"] if rencana["komunikasi"] else 0
+                },
+                "hotel": {
+                    "item": rencana["hotel"],
+                    "total": rencana["hotel"]["harga"] if rencana["hotel"] else 0
+                },
+                "makan": {
+                    "items": rencana["makan"],
+                    "total": sum(item["harga"] for item in rencana["makan"])
+                },
+                "transportasi": {
+                    "items": rencana["transportasi"],
+                    "total": sum(item["harga"] for item in rencana["transportasi"])
+                },
+                "wisata": {
+                    "items": rencana["wisata"],
+                    "total": sum(item["harga"] for item in rencana["wisata"])
+                },
+                "belanja": {
+                    "items": rencana["belanja"],
+                    "total": sum(item["harga"] for item in rencana["belanja"])
+                },
+                "tak_terduga": {
+                    "items": rencana["tak_terduga"],
+                    "total": sum(item["harga"] for item in rencana["tak_terduga"])
+                }
+            },
+            "jadwal_harian": {}
+        }
+        
+        # Format jadwal harian
+        for i, hari in enumerate(rencana["jadwal"]):
+            hari_ke = f"Hari {i+1}"
+            hasil["jadwal_harian"][hari_ke] = {
+                "pagi": [item for item in hari["pagi"] if not isinstance(item, dict) or "ref" not in item],
+                "siang": [item for item in hari["siang"] if not isinstance(item, dict) or "ref" not in item],
+                "sore": [item for item in hari["sore"] if not isinstance(item, dict) or "ref" not in item],
+                "malam": [item for item in hari["malam"] if not isinstance(item, dict) or "ref" not in item]
+            }
+        
+        return hasil
+    
+    # Return hasil yang telah diformat
+    return format_output(rencana_terbaik)
+
+# Contoh penggunaan:
+if __name__ == "__main__":
+    hasil = rencana_liburan_korea_maksimal(budget_total=60000000, durasi_hari=7)
+    print(hasil)
