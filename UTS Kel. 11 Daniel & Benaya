@@ -1,0 +1,416 @@
+import time
+import os
+import random
+from datetime import datetime
+from prettytable import PrettyTable
+
+def clear_screen():
+    """Membersihkan layar terminal"""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def print_header():
+    """Menampilkan header program"""
+    print("\n" + "="*70)
+    print("🧹 SISTEM PEMBAGIAN TUGAS CLEANING SERVICES 🧹".center(70))
+    print("="*70 + "\n")
+
+def print_loading(message="Memproses", duration=1.5):
+    """Menampilkan animasi loading"""
+    chars = "⣾⣽⣻⢿⡿⣟⣯⣷"
+    for _ in range(int(duration * 10)):
+        for char in chars:
+            print(f"\r{message} {char}", end="", flush=True)
+            time.sleep(0.05)
+    print("\r" + " " * (len(message) + 2), end="\r")
+
+class CleaningServices:
+    def __init__(self):
+        self.pekerja = []
+        self.area = []
+        self.hasil_pembagian = {}
+        self.waktu_total = {}
+        
+    def tambah_pekerja(self, nama, kecepatan, preferensi=None, max_jam=8):
+        """Menambahkan pekerja baru ke sistem"""
+        if preferensi is None:
+            preferensi = []
+        self.pekerja.append({
+            'nama': nama,
+            'kecepatan': kecepatan,  # Nilai 1-10, semakin tinggi semakin cepat
+            'preferensi': preferensi,
+            'max_jam': max_jam,
+            'jam_terpakai': 0
+        })
+        
+    def tambah_area(self, nama, tingkat_kesulitan, waktu_standar, prioritas=1):
+        """Menambahkan area yang perlu dibersihkan"""
+        self.area.append({
+            'nama': nama,
+            'tingkat_kesulitan': tingkat_kesulitan,  # Nilai 1-10, semakin tinggi semakin sulit
+            'waktu_standar': waktu_standar,  # Waktu dalam jam untuk membersihkan dengan kecepatan standar
+            'prioritas': prioritas,  # 1 (rendah) hingga 5 (tinggi)
+            'status': 'Belum dibersihkan'
+        })
+        
+    def hitung_waktu_pembersihan(self, pekerja, area):
+        """Menghitung waktu yang dibutuhkan seorang pekerja untuk membersihkan area tertentu"""
+        # Formula dasar: waktu standar * tingkat kesulitan / kecepatan pekerja
+        # Jika area adalah preferensi pekerja, pekerja 80% lebih cepat
+        
+        faktor_preferensi = 0.8 if area['nama'] in pekerja['preferensi'] else 1.0
+        waktu = area['waktu_standar'] * (area['tingkat_kesulitan'] / pekerja['kecepatan']) * faktor_preferensi
+        return round(waktu, 2)
+        
+    def bagi_tugas(self):
+        """ALGORITMA UNTUK MEMBAGI TUGAS SECARA OPTIMAL""" 
+        # Reset hasil pembagian
+        self.hasil_pembagian = {pekerja['nama']: [] for pekerja in self.pekerja}
+        self.waktu_total = {pekerja['nama']: 0 for pekerja in self.pekerja}
+        
+        # Urutkan area berdasarkan prioritas (tinggi ke rendah)
+        area_sorted = sorted(self.area, key=lambda x: (-x['prioritas'], -x['tingkat_kesulitan']))
+        
+        # Untuk setiap area, cari pekerja yang paling efisien
+        for area in area_sorted:
+            pekerja_waktu = []
+            
+            # Hitung waktu untuk setiap pekerja
+            for pekerja in self.pekerja:
+                waktu_pembersihan = self.hitung_waktu_pembersihan(pekerja, area)
+                total_waktu_setelah = self.waktu_total[pekerja['nama']] + waktu_pembersihan
+                overtime = max(0, total_waktu_setelah - pekerja['max_jam'])
+                
+                pekerja_waktu.append({
+                    'pekerja': pekerja,
+                    'waktu': waktu_pembersihan,
+                    'total_waktu': total_waktu_setelah,
+                    'overtime': overtime
+                })
+            
+            # Urutan pekerja berdasarkan overtime (kecil ke besar), lalu waktu pembersihan (cepat ke lambat)
+            pekerja_waktu.sort(key=lambda x: (x['overtime'], x['waktu']))
+            
+            # Pilih pekerja terbaik (dengan overtime paling sedikit dan waktu tercepat)
+            best_choice = pekerja_waktu[0]
+            pekerja_terpilih = best_choice['pekerja']
+            waktu_pembersihan = best_choice['waktu']
+            
+            # Berikan tugas ke pekerja
+            self.hasil_pembagian[pekerja_terpilih['nama']].append({
+                'area': area['nama'],
+                'waktu': waktu_pembersihan,
+                'prioritas': area['prioritas'],
+                'kesulitan': area['tingkat_kesulitan']
+            })
+            
+            # Update total waktu pekerja
+            self.waktu_total[pekerja_terpilih['nama']] += waktu_pembersihan
+    
+    def optimasi_pembagian(self, iterasi=500):
+        """Mengoptimalkan pembagian tugas untuk meminimalkan overtime dan menyeimbangkan beban kerja"""
+        print_loading("Mengoptimalkan pembagian tugas", 2)
+        
+        best_score = self.evaluasi_solusi()
+        best_pembagian = {k: v.copy() for k, v in self.hasil_pembagian.items()}
+        best_waktu = self.waktu_total.copy()
+        
+        for _ in range(iterasi):
+            # Pilih dua pekerja secara acak
+            if len(self.pekerja) < 2:
+                break
+                
+            pekerja_names = list(self.hasil_pembagian.keys())
+            p1, p2 = random.sample(pekerja_names, 2)
+            
+            # Jika salah satu tidak punya tugas, lewati
+            if not self.hasil_pembagian[p1] or not self.hasil_pembagian[p2]:
+                continue
+                
+            # Pilih tugas acak dari masing-masing pekerja
+            task1_idx = random.randrange(len(self.hasil_pembagian[p1]))
+            task2_idx = random.randrange(len(self.hasil_pembagian[p2]))
+            
+            task1 = self.hasil_pembagian[p1][task1_idx]
+            task2 = self.hasil_pembagian[p2][task2_idx]
+            
+            # Simpan kondisi awal
+            old_waktu_p1 = self.waktu_total[p1]
+            old_waktu_p2 = self.waktu_total[p2]
+            
+            # Cari objek pekerja
+            pekerja1 = next(p for p in self.pekerja if p['nama'] == p1)
+            pekerja2 = next(p for p in self.pekerja if p['nama'] == p2)
+            
+            # Cari objek area
+            area1 = next(a for a in self.area if a['nama'] == task1['area'])
+            area2 = next(a for a in self.area if a['nama'] == task2['area'])
+            
+            # Hitung waktu baru jika tugas ditukar
+            new_time1_for_task2 = self.hitung_waktu_pembersihan(pekerja1, area2)
+            new_time2_for_task1 = self.hitung_waktu_pembersihan(pekerja2, area1)
+            
+            # Update waktu total
+            self.waktu_total[p1] = old_waktu_p1 - task1['waktu'] + new_time1_for_task2
+            self.waktu_total[p2] = old_waktu_p2 - task2['waktu'] + new_time2_for_task1
+            
+            # Tukar tugas
+            self.hasil_pembagian[p1][task1_idx] = {
+                'area': task2['area'],
+                'waktu': new_time1_for_task2,
+                'prioritas': task2['prioritas'],
+                'kesulitan': task2['kesulitan'] 
+            }
+            
+            self.hasil_pembagian[p2][task2_idx] = {
+                'area': task1['area'],
+                'waktu': new_time2_for_task1,
+                'prioritas': task1['prioritas'],
+                'kesulitan': task1['kesulitan']
+            }
+            
+            # Evaluasi solusi baru
+            new_score = self.evaluasi_solusi()
+            
+            # Jika solusi baru lebih baik, simpan
+            if new_score > best_score:
+                best_score = new_score
+                best_pembagian = {k: v.copy() for k, v in self.hasil_pembagian.items()}
+                best_waktu = self.waktu_total.copy()
+            else:
+                # Kembalikan ke kondisi awal
+                self.waktu_total[p1] = old_waktu_p1
+                self.waktu_total[p2] = old_waktu_p2
+                self.hasil_pembagian[p1][task1_idx] = task1
+                self.hasil_pembagian[p2][task2_idx] = task2
+        
+        # Kembalikan ke solusi terbaik
+        self.hasil_pembagian = best_pembagian
+        self.waktu_total = best_waktu
+    
+    def evaluasi_solusi(self):
+        """Mengevaluasi kualitas solusi dengan mempertimbangkan overtime dan beban kerja"""
+        # Penalti untuk overtime
+        total_overtime = 0
+        for pekerja in self.pekerja:
+            overtime = max(0, self.waktu_total[pekerja['nama']] - pekerja['max_jam'])
+            total_overtime += overtime * 10  # Penalti besar untuk overtime
+        
+        # Penalti untuk ketidakseimbangan beban kerja
+        waktu_rata = sum(self.waktu_total.values()) / max(1, len(self.waktu_total))
+        ketidakseimbangan = sum(abs(self.waktu_total[p['nama']] - waktu_rata) for p in self.pekerja)
+        
+        # Prioritas area terpenuhi (tidak ada penalti)
+        
+        # Skor akhir (semakin tinggi semakin baik)
+        return -(total_overtime + ketidakseimbangan)
+    
+    def tampilkan_hasil(self):
+        """Menampilkan hasil pembagian tugas dalam format tabel yang menarik"""
+        #clear_screen()
+        print_header()
+        
+        print("📋 HASIL PEMBAGIAN TUGAS CLEANING SERVICES 📋\n")
+        print(f"Tanggal: {datetime.now().strftime('%d-%m-%Y %H:%M')}\n")
+        
+        # Tampilkan tabel ringkasan waktu
+        tabel_ringkasan = PrettyTable()
+        tabel_ringkasan.field_names = ["Nama Pekerja", "Total Jam Kerja", "Status"]
+        
+        for pekerja in self.pekerja:
+            nama = pekerja['nama']
+            total_jam = self.waktu_total[nama]
+            
+            if total_jam > pekerja['max_jam']:
+                status = f"⚠️ OVERTIME ({round(total_jam - pekerja['max_jam'], 2)} jam)"
+            elif total_jam == pekerja['max_jam']:
+                status = "✅ OPTIMAL"
+            else:
+                status = f"✅ UNDER ({round(pekerja['max_jam'] - total_jam, 2)} jam tersisa)"
+                
+            tabel_ringkasan.add_row([nama, f"{round(total_jam, 2)} jam", status])
+        
+        print(tabel_ringkasan)
+        print("\n")
+        
+        # Tampilkan tabel detail pembagian tugas per pekerja
+        print("DETAIL PEMBAGIAN TUGAS PER PEKERJA:\n")
+        
+        for pekerja in self.pekerja:
+            nama = pekerja['nama']
+            print(f"👤 {nama} ({round(self.waktu_total[nama], 2)} jam):")
+            
+            if not self.hasil_pembagian[nama]:
+                print("   - Tidak ada tugas yang diberikan\n")
+                continue
+                
+            tabel_detail = PrettyTable()
+            tabel_detail.field_names = ["No", "Area", "Kesulitan", "Prioritas", "Waktu"]
+            
+            # Urutkan tugas berdasarkan prioritas (tinggi ke rendah)
+            tugas_sorted = sorted(self.hasil_pembagian[nama], key=lambda x: (-x['prioritas']))
+            
+            for i, tugas in enumerate(tugas_sorted, 1):
+                kesulitan = "⚡" * tugas['kesulitan']
+                prioritas = "⭐" * tugas['prioritas']
+                tabel_detail.add_row([
+                    i, 
+                    tugas['area'], 
+                    kesulitan, 
+                    prioritas, 
+                    f"{round(tugas['waktu'], 2)} jam"
+                ])
+            
+            print(tabel_detail)
+            print("\n")
+            
+        # Tampilkan keterangan status
+        print("Keterangan Status:")
+        print("✅ OPTIMAL  : Beban kerja sesuai dengan jam kerja maksimal")
+        print("✅ UNDER    : Beban kerja kurang dari jam kerja maksimal")
+        print("⚠️ OVERTIME : Beban kerja melebihi jam kerja maksimal")
+        print("\nKeterangan Simbol:")
+        print("⭐ : Tingkat prioritas area (1-5)")
+        print("⚡ : Tingkat kesulitan area (1-10)\n")
+
+def input_dengan_validasi(prompt, tipe=str, min_val=None, max_val=None):
+    """Fungsi untuk meminta input dengan validasi"""
+    while True:
+        try:
+            if tipe == str:
+                nilai = input(prompt).strip()
+                if nilai == "":
+                    print("❌ Input tidak boleh kosong!")
+                    continue
+                return nilai
+            elif tipe == int:
+                nilai = int(input(prompt))
+                if min_val is not None and nilai < min_val:
+                    print(f"❌ Nilai harus minimal {min_val}!")
+                    continue
+                if max_val is not None and nilai > max_val:
+                    print(f"❌ Nilai harus maksimal {max_val}!")
+                    continue
+                return nilai
+            elif tipe == float:
+                nilai = float(input(prompt))
+                if min_val is not None and nilai < min_val:
+                    print(f"❌ Nilai harus minimal {min_val}!")
+                    continue
+                if max_val is not None and nilai > max_val:
+                    print(f"❌ Nilai harus maksimal {max_val}!")
+                    continue
+                return nilai
+        except ValueError:
+            print("❌ Format input tidak valid!")
+
+def simulasi_otomatis():
+    """Fungsi untuk menjalankan simulasi dengan data yang sudah ditetapkan"""
+    sistem = CleaningServices()
+    
+    # Data pekerja
+    sistem.tambah_pekerja("Budi Santoso", 8, ["Lobby", "Ruang Meeting"], 8)
+    sistem.tambah_pekerja("Dewi Putri", 7, ["Kamar Mandi Lt.1", "Dapur"], 6)
+    sistem.tambah_pekerja("Ahmad Rizki", 9, ["Gudang", "Lift"], 8)
+    sistem.tambah_pekerja("Siti Nurhasanah", 6, ["Ruang Karyawan", "Koridor Lt.1"], 7)
+    sistem.tambah_pekerja("Rudi Hermawan", 8, ["Kantin", "Ruang Karyawan"], 8)
+    
+    # Data area
+    sistem.tambah_area("Lobby", 5, 1.5, 5)
+    sistem.tambah_area("Ruang Meeting", 4, 2, 4)
+    sistem.tambah_area("Kantin", 7, 3, 5)
+    sistem.tambah_area("Kamar Mandi Lt.1", 8, 2.5, 5)
+    sistem.tambah_area("Kamar Mandi Lt.2", 8, 2.5, 4)
+    sistem.tambah_area("Koridor Lt.1", 6, 2, 3)
+    sistem.tambah_area("Koridor Lt.2", 6, 2, 3)
+    sistem.tambah_area("Ruang Karyawan", 4, 1.5, 2)
+    sistem.tambah_area("Dapur", 7, 2, 4)
+    sistem.tambah_area("Gudang", 5, 3, 1)
+    sistem.tambah_area("Lift", 3, 1, 4)
+    sistem.tambah_area("Area Parkir", 9, 4, 3)
+    
+    # Proses pembagian tugas
+    print("\nMenjalankan simulasi dengan data yang telah ditetapkan...")
+    print_loading("Membagi tugas", 1.5)
+    sistem.bagi_tugas()
+    sistem.optimasi_pembagian()
+    
+    # Tampilkan hasil
+    sistem.tampilkan_hasil()
+    
+    return sistem
+
+def main():
+    """Fungsi utama program"""
+    #clear_screen()
+    print_header()
+    
+    print("Selamat datang di Sistem Pembagian Tugas Cleaning Services!\n")
+    print("Program ini akan membantu Anda membagi tugas pembersihan kepada para pekerja")
+    print("secara adil dan efisien sesuai dengan kemampuan dan preferensi mereka.\n")
+    
+    # Pilihan mode program
+    print("Pilih mode program:")
+    print("1. Input data manual")
+    print("2. Jalankan simulasi otomatis dengan data contoh")
+    
+    pilihan = input_dengan_validasi("Pilihan Anda (1/2): ", int, 1, 2)
+    
+    if pilihan == 2:
+        sistem = simulasi_otomatis()
+    else:
+        # Inisialisasi sistem
+        sistem = CleaningServices()
+        
+        # Input data pekerja
+        jumlah_pekerja = input_dengan_validasi("\nMasukkan jumlah pekerja: ", int, 1, 100)
+        print("\n=== INPUT DATA PEKERJA ===\n")
+        
+        for i in range(jumlah_pekerja):
+            print(f"Pekerja #{i+1}:")
+            nama = input_dengan_validasi(f"Nama pekerja #{i+1}: ")
+            kecepatan = input_dengan_validasi("Kecepatan (1-10, semakin tinggi semakin cepat): ", int, 1, 10)
+            max_jam = input_dengan_validasi("Jam kerja maksimal (jam): ", float, 0.5, 24)
+            
+            preferensi = []
+            punya_preferensi = input("Apakah pekerja memiliki preferensi area? (y/n): ").lower() == 'y'
+            
+            if punya_preferensi:
+                jumlah_preferensi = input_dengan_validasi("Berapa banyak preferensi? ", int, 1, 10)
+                print("Masukkan nama area yang disukai:")
+                for j in range(jumlah_preferensi):
+                    preferensi.append(input_dengan_validasi(f"Preferensi #{j+1}: "))
+                    
+            sistem.tambah_pekerja(nama, kecepatan, preferensi, max_jam)
+            print("")
+        
+        # Input data area
+        print("\n=== INPUT DATA AREA ===\n")
+        jumlah_area = input_dengan_validasi("Masukkan jumlah area yang perlu dibersihkan: ", int, 1, 100)
+        
+        for i in range(jumlah_area):
+            print(f"Area #{i+1}:")
+            nama = input_dengan_validasi(f"Nama area #{i+1}: ")
+            kesulitan = input_dengan_validasi("Tingkat kesulitan (1-10, semakin tinggi semakin sulit): ", int, 1, 10)
+            waktu = input_dengan_validasi("Waktu standar pembersihan (jam): ", float, 0.1, 24)
+            prioritas = input_dengan_validasi("Prioritas (1-5, semakin tinggi semakin penting): ", int, 1, 5)
+            
+            sistem.tambah_area(nama, kesulitan, waktu, prioritas)
+            print("")
+        
+        # Proses pembagian tugas
+        print("\nMemproses pembagian tugas...")
+        print_loading("Membagi tugas", 1.5)
+        sistem.bagi_tugas()
+        
+        print_loading("Mengoptimalkan pembagian", 1.5)
+        sistem.optimasi_pembagian()
+        
+        # Tampilkan hasil
+        sistem.tampilkan_hasil()
+    
+    print("\nTerima kasih telah menggunakan Sistem Pembagian Tugas Cleaning Services!")
+    print("Program dibuat oleh Kelompok 11 untuk UTS ALPRO 2")
+    input("\nTekan Enter untuk keluar...")
+
+if __name__ == "__main__":
+    main()
